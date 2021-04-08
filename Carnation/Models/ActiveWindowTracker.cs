@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Threading;
+using Microsoft;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
@@ -7,6 +8,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using static Microsoft.VisualStudio.VSConstants;
 
 namespace Carnation
 {
@@ -33,48 +35,31 @@ namespace Carnation
         public ActiveWindowTracker()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-
             _runningDocumentTable = VSServiceHelpers.GetService<IVsRunningDocumentTable, SVsRunningDocumentTable>();
-            if (_runningDocumentTable is null)
-            {
-                throw new Exception("Cannot initialize without getting running document table");
-            }
-
+            Assumes.Present(_runningDocumentTable);
             _runningDocumentTable.AdviseRunningDocTableEvents(this, out _runningDocumentTableCookie);
         }
 
         public int OnBeforeDocumentWindowShow(uint docCookie, int firstShow, IVsWindowFrame vsWindowFrame)
         {
-            if (firstShow != 0)
-            {
-                return VSConstants.S_OK;
-            }
-
+            if (firstShow != 0) return S_OK;
             var wpfTextView = ToWpfTextView(vsWindowFrame);
-            if (wpfTextView != null)
-            {
-                Clear();
-                ActiveWpfTextView = wpfTextView;
-                ActiveWpfTextView.Selection.SelectionChanged += HandleSelectionChanged;
-                ActiveWpfTextView.TextBuffer.Changed += HandleTextBufferChanged;
-                ActiveWpfTextView.LostAggregateFocus += HandleTextViewLostFocus;
-            }
-
-            return VSConstants.S_OK;
+            if (wpfTextView == null) return S_OK;
+            Clear();
+            ActiveWpfTextView = wpfTextView;
+            ActiveWpfTextView.Selection.SelectionChanged += HandleSelectionChanged;
+            ActiveWpfTextView.TextBuffer.Changed += HandleTextBufferChanged;
+            ActiveWpfTextView.LostAggregateFocus += HandleTextViewLostFocus;
+            return S_OK;
         }
 
         public int OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame vsWindowFrame)
         {
-            if (ActiveWpfTextView != null)
-            {
-                var wpfTextView = ToWpfTextView(vsWindowFrame);
-                if (wpfTextView == ActiveWpfTextView)
-                {
-                    Clear();
-                }
-            }
-
-            return VSConstants.S_OK;
+            if (ActiveWpfTextView == null) return S_OK;
+            var wpfTextView = ToWpfTextView(vsWindowFrame);
+            if (wpfTextView != ActiveWpfTextView) return S_OK;
+            Clear();
+            return S_OK;
         }
 
         private void Clear()
@@ -141,22 +126,22 @@ namespace Carnation
 
         public int OnAfterFirstDocumentLock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
         {
-            return VSConstants.S_OK;
+            return S_OK;
         }
 
         public int OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
         {
-            return VSConstants.S_OK;
+            return S_OK;
         }
 
         public int OnAfterSave(uint docCookie)
         {
-            return VSConstants.S_OK;
+            return S_OK;
         }
 
         public int OnAfterAttributeChange(uint docCookie, uint grfAttribs)
         {
-            return VSConstants.S_OK;
+            return S_OK;
         }
 
         internal static IWpfTextView ToWpfTextView(IVsWindowFrame vsWindowFrame)

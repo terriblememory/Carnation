@@ -2,27 +2,22 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Controls;
-using System.Windows.Media;
-using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
+using static Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Carnation
 {
-    /// <summary>
-    /// Interaction logic for MainWindowControl.
-    /// </summary>
     public partial class MainWindowControl : UserControl, IDisposable
     {
         private ActiveWindowTracker _activeWindowTracker;
         private readonly MainWindowControlViewModel _viewModel;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="MainWindowControl"/> class.
-        /// </summary>
         public MainWindowControl()
         {
+            ThrowIfNotOnUIThread();
+
             DataContext = _viewModel = new MainWindowControlViewModel();
+
             InitializeComponent();
 
             _activeWindowTracker = new ActiveWindowTracker();
@@ -30,7 +25,9 @@ namespace Carnation
 
             var editorFormatMapService = VSServiceHelpers.GetMefExport<IEditorFormatMapService>();
             var editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
-            editorFormatMap.FormatMappingChanged += (object s, FormatItemsEventArgs e) => UpdateClassifications(e.ChangedItems);
+
+            editorFormatMap.FormatMappingChanged +=
+                (object s, FormatItemsEventArgs e) => UpdateClassifications(e.ChangedItems);
 
             void UpdateClassifications(ReadOnlyCollection<string> definitionNames)
             {
@@ -40,7 +37,7 @@ namespace Carnation
 
         private void ActiveWindowPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            ThrowIfNotOnUIThread();
 
             switch (e.PropertyName)
             {
@@ -55,8 +52,7 @@ namespace Carnation
 
         public void Dispose()
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
+            ThrowIfNotOnUIThread();
             _activeWindowTracker?.Dispose();
             _activeWindowTracker = null;
         }

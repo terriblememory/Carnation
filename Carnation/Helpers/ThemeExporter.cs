@@ -11,6 +11,8 @@ namespace Carnation
     {
         public static void Export(string fileName, IEnumerable<ClassificationGridItem> items)
         {
+            Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
+
             var (fontFamily, fontSize) = FontsAndColorsHelper.GetEditorFontInfo(scaleFontSize: false);
             var (defaultForeground, defaultBackground) = FontsAndColorsHelper.GetPlainTextColors();
 

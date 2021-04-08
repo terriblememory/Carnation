@@ -1,11 +1,17 @@
 ﻿using System.Globalization;
-using System.IO;
 using System.Windows.Media;
 
 namespace Carnation.Models
 {
     internal class ObservableColor : NotifyPropertyBase
     {
+        private enum UpdateBehavior
+        {
+            None,
+            FromColor,
+            FromComponent
+        }
+
         private UpdateBehavior _updateBehavior = UpdateBehavior.None;
 
         public ObservableColor(Color color)
@@ -19,56 +25,24 @@ namespace Carnation.Models
             get => _color;
             set
             {
-                if (!SetProperty(ref _color, value))
-                {
-                    return;
-                }
-
-                if (_updateBehavior != UpdateBehavior.FromComponent)
-                {
-                    UpdateColorComponents();
-                }
+                if (!SetProperty(ref _color, value)) return;
+                if (_updateBehavior != UpdateBehavior.FromComponent) UpdateColorComponents();
             }
         }
 
         private string _hex;
-
-        /// <summary>
-        /// This value will always only be RGB, but can accept ARGB and optional # at the beginning
-        /// </summary>
         public string Hex
         {
             get => _hex;
             set
             {
-                var str = value.StartsWith("#")
-                    ? value.Substring(1)
-                    : value;
-
-                if (str.Length == 8)
-                {
-                    // Trim ARGB to RGB
-                    str = str.Substring(2);
-                }
-                
-                if (!SetProperty(ref _hex, str))
-                {
-                    return;
-                }
-
-                // Accept either ARGB or RGB hex values
-                var isValidLength = _hex.Length == 6;
-                if (isValidLength && uint.TryParse(str, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var argb))
-                {
-                    if (_updateBehavior == UpdateBehavior.None)
-                    {
-                        Color = ColorHelpers.ToColor(argb);
-                    }
-                }
-                else
-                {
-                    throw new InvalidDataException($"{value} is not a valid hex color value");
-                }
+                if (value.StartsWith("#")) value = value.Substring(1); // remove leading #
+                if (value.Length == 8) value = value.Substring(2); // remove alpha
+                if (!SetProperty(ref _hex, value)) return; // set the string property
+                if (value.Length != 6) return; // don't parse further unless six chars
+                if (_updateBehavior != UpdateBehavior.None) return;
+                var argb = uint.Parse(value, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat);
+                Color = ColorHelpers.ToColor(argb);
             }
         }
 
@@ -78,15 +52,8 @@ namespace Carnation.Models
             get => _hue;
             set
             {
-                if (!SetProperty(ref _hue, value))
-                {
-                    return;
-                }
-
-                if (_updateBehavior == UpdateBehavior.None)
-                {
-                    UpdateColorFromHSB();
-                }
+                if (!SetProperty(ref _hue, value)) return;
+                if (_updateBehavior == UpdateBehavior.None) UpdateColorFromHSB();
             }
         }
 
@@ -96,15 +63,8 @@ namespace Carnation.Models
             get => _saturation;
             set
             {
-                if (!SetProperty(ref _saturation, value))
-                {
-                    return;
-                }
-
-                if (_updateBehavior == UpdateBehavior.None)
-                {
-                    UpdateColorFromHSB();
-                }
+                if (!SetProperty(ref _saturation, value)) return;
+                if (_updateBehavior == UpdateBehavior.None) UpdateColorFromHSB();
             }
         }
 
@@ -114,15 +74,8 @@ namespace Carnation.Models
             get => _brightness;
             set
             {
-                if (!SetProperty(ref _brightness, value))
-                {
-                    return;
-                }
-
-                if (_updateBehavior == UpdateBehavior.None)
-                {
-                    UpdateColorFromHSB();
-                }
+                if (!SetProperty(ref _brightness, value)) return;
+                if (_updateBehavior == UpdateBehavior.None) UpdateColorFromHSB();
             }
         }
 
@@ -132,15 +85,8 @@ namespace Carnation.Models
             get => _red;
             set
             {
-                if (!SetProperty(ref _red, value))
-                {
-                    return;
-                }
-
-                if (_updateBehavior == UpdateBehavior.None)
-                {
-                    UpdateColorFromRGB();
-                }
+                if (!SetProperty(ref _red, value)) return;
+                if (_updateBehavior == UpdateBehavior.None) UpdateColorFromRGB();
             }
         }
 
@@ -150,15 +96,8 @@ namespace Carnation.Models
             get => _green;
             set
             {
-                if (!SetProperty(ref _green, value))
-                {
-                    return;
-                }
-
-                if (_updateBehavior == UpdateBehavior.None)
-                {
-                    UpdateColorFromRGB();
-                }
+                if (!SetProperty(ref _green, value)) return;
+                if (_updateBehavior == UpdateBehavior.None) UpdateColorFromRGB();
             }
         }
 
@@ -168,15 +107,8 @@ namespace Carnation.Models
             get => _blue;
             set
             {
-                if (!SetProperty(ref _blue, value))
-                {
-                    return;
-                }
-
-                if (_updateBehavior == UpdateBehavior.None)
-                {
-                    UpdateColorFromRGB();
-                }
+                if (!SetProperty(ref _blue, value)) return;
+                if (_updateBehavior == UpdateBehavior.None) UpdateColorFromRGB();
             }
         }
 
@@ -219,21 +151,6 @@ namespace Carnation.Models
             Hex = Color.ToString();
 
             _updateBehavior = UpdateBehavior.None;
-        }
-
-        private enum UpdateBehavior
-        {
-            None,
-
-            /// <summary>
-            /// Update is triggered from the Color property being updated
-            /// </summary>
-            FromColor,
-
-            /// <summary>
-            /// Update is triggered from a component of Color, such as Hue
-            /// </summary>
-            FromComponent
         }
     }
 }

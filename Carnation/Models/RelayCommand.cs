@@ -8,7 +8,11 @@ namespace Carnation
         private readonly Action _commandAction;
         private readonly Func<bool> _canExecute;
 
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add { }
+            remove { }
+        }
 
         public RelayCommand(Action commandAction, Func<bool> canExecute = null)
         {
@@ -37,7 +41,11 @@ namespace Carnation
         private readonly Action<T> _commandAction;
         private readonly Func<T, bool> _canExecute;
 
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add { }
+            remove { }
+        }
 
         public RelayCommand(Action<T> commandAction, Func<T, bool> canExecute = null)
         {

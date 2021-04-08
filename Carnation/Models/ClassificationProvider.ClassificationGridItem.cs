@@ -21,6 +21,13 @@ namespace Carnation
                 set => SetProperty(ref _definitionName, value);
             }
 
+            private string _definitionLocalizedName;
+            public string DefinitionLocalizedName
+            {
+                get => _definitionLocalizedName;
+                set => SetProperty(ref _definitionLocalizedName, value);
+            }
+
             private bool _hasContrastWarning;
             public bool HasContrastWarning
             {
@@ -37,6 +44,7 @@ namespace Carnation
             public ClassificationGridItem(
                 Guid category,
                 string definitionName,
+                string definitionLocalizedName,
                 uint foregroundColorRef,
                 uint backgroundColorRef,
                 uint autoForegroundColorRef,
@@ -56,6 +64,7 @@ namespace Carnation
             {
                 _category = category;
                 _definitionName = definitionName;
+                _definitionLocalizedName = definitionLocalizedName;
 
                 PropertyChanged += (s, o) =>
                 {

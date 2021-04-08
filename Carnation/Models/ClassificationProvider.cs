@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Linq;
 using System.Windows.Media;
-using Microsoft.VisualStudio.Shell;
+using static Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Carnation
 {
@@ -16,13 +16,12 @@ namespace Carnation
 
         public ClassificationProvider()
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            ThrowIfNotOnUIThread();
 
-            ClassificationNameMap = ClassificationHelpers.GetClassificationNameMap();
-            (PlainTextForeground, PlainTextBackground) = FontsAndColorsHelper.GetPlainTextColors();
             var infos = FontsAndColorsHelper.GetTextEditorInfos();
 
-            GridItems = infos.Keys
+            GridItems =
+                infos.Keys
                 .SelectMany(category => infos[category].Select(info => FontsAndColorsHelper.TryGetClassificationItemForInfo(category, info)))
                 .OfType<ClassificationGridItem>()
                 .ToImmutableArray();
@@ -30,13 +29,12 @@ namespace Carnation
 
         public void Refresh(ILookup<string, string> definitionNames)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            ThrowIfNotOnUIThread();
 
             try
             {
                 IsUpdating = true;
 
-                (PlainTextForeground, PlainTextBackground) = FontsAndColorsHelper.GetPlainTextColors();
                 var infos = FontsAndColorsHelper.GetTextEditorInfos()
                     .ToImmutableDictionary(
                         kvp => kvp.Key,

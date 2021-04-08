@@ -10,14 +10,9 @@ namespace Carnation
 
         protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string name = "")
         {
-            if (EqualityComparer<T>.Default.Equals(field, newValue))
-            {
-                return false;
-            }
-
+            if (EqualityComparer<T>.Default.Equals(field, newValue)) return false;
             field = newValue;
             NotifyPropertyChanged(name);
-
             return true;
         }
 

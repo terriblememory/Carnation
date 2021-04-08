@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell.Settings;
+using static Microsoft.VisualStudio.VSConstants;
+using static Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Carnation
 {
@@ -15,29 +14,17 @@ namespace Carnation
         public static TServiceInterface GetMefExport<TServiceInterface>(Microsoft.VisualStudio.OLE.Interop.IServiceProvider serviceProvider = null) where TServiceInterface : class
         {
             serviceProvider = serviceProvider ?? GlobalServiceProvider;
-            TServiceInterface value = null;
             var componentModel = GetService<IComponentModel, SComponentModel>(serviceProvider);
-
-            if (componentModel != null)
-            {
-                value = componentModel.DefaultExportProvider.GetExportedValue<TServiceInterface>();
-            }
-
-            return value;
+            if (componentModel == null) return null;
+            return componentModel.DefaultExportProvider.GetExportedValue<TServiceInterface>();
         }
 
         public static IEnumerable<TServiceInterface> GetMefExports<TServiceInterface>(Microsoft.VisualStudio.OLE.Interop.IServiceProvider serviceProvider = null) where TServiceInterface : class
         {
             serviceProvider = serviceProvider ?? GlobalServiceProvider;
-            IEnumerable<TServiceInterface> values = null;
             var componentModel = GetService<IComponentModel, SComponentModel>(serviceProvider);
-
-            if (componentModel != null)
-            {
-                values = componentModel.DefaultExportProvider.GetExportedValues<TServiceInterface>();
-            }
-
-            return values;
+            if (componentModel == null) return null;
+            return componentModel.DefaultExportProvider.GetExportedValues<TServiceInterface>();
         }
 
         public static TServiceInterface GetService<TServiceInterface, TService>(
@@ -45,7 +32,7 @@ namespace Carnation
             where TServiceInterface : class
             where TService : class
         {
-            Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
+            ThrowIfNotOnUIThread();
             serviceProvider = serviceProvider ?? GlobalServiceProvider;
             return (TServiceInterface)GetService(serviceProvider, typeof(TService).GUID, false);
         }
@@ -53,32 +40,21 @@ namespace Carnation
         public static object GetService(
             Microsoft.VisualStudio.OLE.Interop.IServiceProvider serviceProvider, Guid guidService, bool unique)
         {
-            Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
-            var guidInterface = VSConstants.IID_IUnknown;
-            var ptr = IntPtr.Zero;
-            object service = null;
+            ThrowIfNotOnUIThread();
 
-            if (serviceProvider.QueryService(ref guidService, ref guidInterface, out ptr) == 0 &&
-                ptr != IntPtr.Zero)
+            var guidInterface = IID_IUnknown;
+            if (serviceProvider.QueryService(ref guidService, ref guidInterface, out var ptr) != 0) return null;
+            if (ptr == IntPtr.Zero) return null;
+
+            try
             {
-                try
-                {
-                    if (unique)
-                    {
-                        service = Marshal.GetUniqueObjectForIUnknown(ptr);
-                    }
-                    else
-                    {
-                        service = Marshal.GetObjectForIUnknown(ptr);
-                    }
-                }
-                finally
-                {
-                    Marshal.Release(ptr);
-                }
+                if (unique) return Marshal.GetUniqueObjectForIUnknown(ptr);
+                else return Marshal.GetObjectForIUnknown(ptr);
             }
-
-            return service;
+            finally
+            {
+                Marshal.Release(ptr);
+            }
         }
     }
 }

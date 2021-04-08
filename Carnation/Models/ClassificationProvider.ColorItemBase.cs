@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.Contracts;
 using System.Windows.Media;
+using static Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Carnation
 {
@@ -7,41 +8,46 @@ namespace Carnation
     {
         internal abstract class ColorItemBase : NotifyPropertyBase
         {
+            // Foreground
+
             private uint _foregroundColorRef;
             public uint ForegroundColorRef
             {
                 get => _foregroundColorRef;
-                set
-                {
-                    _foregroundColorRef = value;
-                    NotifyPropertyChanged(nameof(Foreground));
-                }
+                set => SetProperty(ref _foregroundColorRef, value, nameof(Foreground));
             }
 
             public Color Foreground
             {
-                get => IsForegroundEditable
-                    ? FontsAndColorsHelper.TryGetColor(ForegroundColorRef) ?? DefaultForeground
-                    : Colors.Transparent;
+                get
+                {
+                    ThrowIfNotOnUIThread();
+                    if (!IsForegroundEditable) return Colors.Transparent;
+                    return FontsAndColorsHelper.TryGetColor(ForegroundColorRef) ?? DefaultForeground;
+                }
                 set
                 {
+                    ThrowIfNotOnUIThread();
                     Contract.Assert(IsUpdating || IsForegroundEditable);
                     ForegroundColorRef = FontsAndColorsHelper.GetColorRef(value, DefaultForeground);
                 }
             }
 
-            private uint _autoForegroundColorRef;
+            private readonly uint _autoForegroundColorRef;
             public uint AutoForegroundColorRef
             {
                 get => _autoForegroundColorRef;
-                set
-                {
-                    _autoForegroundColorRef = value;
-                    NotifyPropertyChanged(nameof(DefaultForeground));
-                }
+                set => SetProperty(ref _autoBackgroundColorRef, value, nameof(DefaultForeground));
             }
 
-            public Color DefaultForeground => FontsAndColorsHelper.TryGetColor(AutoForegroundColorRef) ?? PlainTextForeground;
+            public Color DefaultForeground
+            {
+                get
+                {
+                    ThrowIfNotOnUIThread();
+                    return FontsAndColorsHelper.TryGetColor(AutoForegroundColorRef) ?? PlainTextForeground;
+                }
+            }
 
             private bool _isForegroundEditable = true;
             public bool IsForegroundEditable
@@ -50,24 +56,26 @@ namespace Carnation
                 set => SetProperty(ref _isForegroundEditable, value);
             }
 
+            // Background
+
             private uint _backgroundColorRef;
             public uint BackgroundColorRef
             {
                 get => _backgroundColorRef;
-                set
-                {
-                    _backgroundColorRef = value;
-                    NotifyPropertyChanged(nameof(Background));
-                }
+                set => SetProperty(ref _backgroundColorRef, value, nameof(Background));
             }
 
             public Color Background
             {
-                get => IsBackgroundEditable
-                    ? FontsAndColorsHelper.TryGetColor(BackgroundColorRef) ?? DefaultBackground
-                    : Colors.Transparent;
+                get
+                {
+                    ThrowIfNotOnUIThread();
+                    if (!IsBackgroundEditable) return Colors.Transparent;
+                    return FontsAndColorsHelper.TryGetColor(BackgroundColorRef) ?? DefaultBackground;
+                }
                 set
                 {
+                    ThrowIfNotOnUIThread();
                     Contract.Assert(IsUpdating || IsBackgroundEditable);
                     BackgroundColorRef = FontsAndColorsHelper.GetColorRef(value, DefaultBackground);
                 }
@@ -77,14 +85,17 @@ namespace Carnation
             public uint AutoBackgroundColorRef
             {
                 get => _autoBackgroundColorRef;
-                set
-                {
-                    _autoBackgroundColorRef = value;
-                    NotifyPropertyChanged(nameof(DefaultBackground));
-                }
+                set => SetProperty(ref _autoBackgroundColorRef, value, nameof(DefaultBackground));
             }
 
-            public Color DefaultBackground => FontsAndColorsHelper.TryGetColor(AutoBackgroundColorRef) ?? PlainTextBackground;
+            public Color DefaultBackground
+            {
+                get
+                {
+                    ThrowIfNotOnUIThread();
+                    return FontsAndColorsHelper.TryGetColor(AutoBackgroundColorRef) ?? PlainTextBackground;
+                }
+            }
 
             private bool _isBackgroundEditable = true;
             public bool IsBackgroundEditable
@@ -92,6 +103,8 @@ namespace Carnation
                 get => _isBackgroundEditable;
                 set => SetProperty(ref _isBackgroundEditable, value);
             }
+
+            // Bold
 
             private bool _isBold;
             public bool IsBold
@@ -111,6 +124,8 @@ namespace Carnation
                 set => SetProperty(ref _isBoldEditable, value);
             }
 
+            // Contrast ratio
+
             private double _contrastRatio;
             public double ContrastRatio
             {
@@ -128,6 +143,8 @@ namespace Carnation
                 bool isBackgroundEditable,
                 bool isBoldEditable)
             {
+                ThrowIfNotOnUIThread();
+
                 _foregroundColorRef = foregroundColorRef;
                 _backgroundColorRef = backgroundColorRef;
                 _autoForegroundColorRef = autoForegroundColorRef;
@@ -153,12 +170,12 @@ namespace Carnation
 
             private void ComputeContrastRatio()
             {
+                ThrowIfNotOnUIThread();
                 if (!IsForegroundEditable || !IsBackgroundEditable)
                 {
                     ContrastRatio = 0.0;
                     return;
                 }
-
                 var contrast = ColorHelpers.GetContrast(Foreground, Background);
                 ContrastRatio = contrast;
             }

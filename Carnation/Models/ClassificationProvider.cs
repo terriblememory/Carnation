@@ -5,26 +5,32 @@ using static Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Carnation
 {
-    internal partial class ClassificationProvider
+    public class ClassificationProvider
     {
         public static Color PlainTextForeground { get; private set; }
         public static Color PlainTextBackground { get; private set; }
         public static ImmutableDictionary<string, string> ClassificationNameMap { get; private set; }
         public static bool IsUpdating { get; private set; }
 
-        public ImmutableArray<ClassificationGridItem> GridItems { get; }
+        static ClassificationProvider()
+        {
+            ThrowIfNotOnUIThread();
+            ClassificationNameMap = ClassificationHelpers.GetClassificationNameMap();
+        }
+
+        public ImmutableArray<GridItem> GridItems { get; }
 
         public ClassificationProvider()
         {
             ThrowIfNotOnUIThread();
-
-            var infos = FontsAndColorsHelper.GetTextEditorInfos();
-
-            GridItems =
-                infos.Keys
-                .SelectMany(category => infos[category].Select(info => FontsAndColorsHelper.TryGetClassificationItemForInfo(category, info)))
-                .OfType<ClassificationGridItem>()
-                .ToImmutableArray();
+            var builder = ImmutableArray.CreateBuilder<GridItem>();
+            var items = FontsAndColorsHelper.GetColorItems();
+            foreach (var item in items)
+            {
+                var ci = FontsAndColorsHelper.TryGetGridItemForColorItem(item);
+                builder.Add(ci);
+            }
+            GridItems = builder.ToImmutable();
         }
 
         public void Refresh(ILookup<string, string> definitionNames)
@@ -35,16 +41,20 @@ namespace Carnation
             {
                 IsUpdating = true;
 
-                var infos = FontsAndColorsHelper.GetTextEditorInfos()
-                    .ToImmutableDictionary(
-                        kvp => kvp.Key,
-                        kvp => kvp.Value
-                            .Where(info => definitionNames.Contains(info.bstrName))
-                            .ToImmutableDictionary(info => info.bstrName));
+                var colorItems = FontsAndColorsHelper.GetColorItems();
 
-                foreach (var item in GridItems.Where(item => definitionNames.Contains(item.DefinitionName)))
+                foreach (var classificationItem in GridItems)
                 {
-                    FontsAndColorsHelper.RefreshClassificationItem(item, infos[item.Category][item.DefinitionName]);
+                    if (definitionNames.Contains(classificationItem.DefinitionName))
+                    {
+                        foreach (var colorItem in colorItems)
+                        {
+                            if (colorItem.AllColorableItemInfo.bstrName == classificationItem.DefinitionName)
+                            {
+                                FontsAndColorsHelper.RefreshGridItemFromColorItem(classificationItem, colorItem);
+                            }
+                        }
+                    }
                 }
             }
             finally

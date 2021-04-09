@@ -1,0 +1,197 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Text Editor]
+"Category"="{A27B4E24-A735-4d1d-B8E7-9716E1E3D8E0}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"SortElements"=dword:00000001
+"CacheMOUItems"=dword:00000001
+"CategoryVersion"=dword:00000001
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors]
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\All Text Tool Windows]
+"Category"="{C34C709B-C855-459E-B38C-3021F162D3B1}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000000
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\AllDebuggerVarWnds]
+"Category"="{35B25E75-AB53-4C5D-80EA-6682EBB2BBBD}"
+"NameID"=dword:00000326
+"Package"="{3B70A4AE-BB91-4ABE-A05C-C4DE07B9763E}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Autos]
+"Category"="{A7EE6BEE-D0AA-4B2F-AD9D-748276A725F6}"
+"NameID"=dword:00000321
+"Package"="{3B70A4AE-BB91-4ABE-A05C-C4DE07B9763E}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\CallStack]
+"Category"="{FD2219AF-EBF8-4116-A801-3B503C48DFF0}"
+"NameID"=dword:00000323
+"Package"="{3B70A4AE-BB91-4ABE-A05C-C4DE07B9763E}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\CodeLens]
+"Category"="{FC88969A-CBED-4940-8F48-142A503E2381}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000000
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Command Window]
+"Category"="{EE1BE240-4E81-4beb-8EEA-54322B6B1BF5}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000000
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Data Source Designer]
+"Category"="{3FFB3681-9B54-42b2-81D5-52453ADF56A6}"
+"Package"="{F35159B3-6FB3-417a-99FB-14B598F1C46E}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Database Designer]
+"Package"="{ADF95D98-9094-4B7B-874A-D94844D05DCE}"
+"Category"="{4C889E8A-2BBB-4DC8-AE21-B1E4799D7631}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\DataTips]
+"Category"="{F7B7B222-E186-48DF-A5EE-174E8129891B}"
+"NameID"=dword:00000325
+"Package"="{3B70A4AE-BB91-4ABE-A05C-C4DE07B9763E}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\DebugLocation]
+"Category"="{B20C0001-0836-4535-A5E8-96E595B1F094}"
+"NameID"=dword:00001435
+"Package"="{3B70A4AE-BB91-4ABE-A05C-C4DE07B9763E}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Dialogs and Tool Windows]
+"Package"="{FD9DC8E3-2FFC-446D-8C50-99CA4A3D2D1C}"
+"Category"="{1F987C00-E7C4-4869-8A17-23FD602268B0}"
+"CategoryVersion"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Find Results]
+"Category"="{5C48B2CB-0366-4fbf-9786-0BB37E945687}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000000
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Folder Difference]
+"Category"="{B36B0228-DBAD-4db0-B9C7-2AD3E572010F}"
+"Package"="{7E6D6852-E8F6-43bd-B17F-E3EA76085404}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Immediate Window]
+"Category"="{6BB65C5A-2F31-4bde-9F48-8A38DC0C63E7}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000000
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Locals]
+"Category"="{8259ACED-490A-41B3-A0FB-64C842CCDC80}"
+"NameID"=dword:00000322
+"Package"="{3B70A4AE-BB91-4ABE-A05C-C4DE07B9763E}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Output Window]
+"Category"="{9973EFDF-317D-431C-8BC1-5E88CBFD4F7F}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000000
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Package Manager Console]
+"Category"="{F9D6BCE6-C669-41DB-8EE7-DD953828685B}"
+"Package"="{F5E7E71D-1401-11D1-883B-0000F87579D2}"
+"NameID"=dword:000000c8
+"ToolWindowPackage"="{5FCC8577-4fEB-4D04-ad72-d6c629b083cc}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Parallel Stacks]
+"Category"="{4330ebb5-2f04-4e03-8414-69f6035087e0}"
+"Package"="{305a20a8-aec0-46a1-a7b3-077516f53946}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Parallel Tasks]
+"Category"="{53371a83-c565-4995-817a-166fff2df0d3}"
+"Package"="{305a20a8-aec0-46a1-a7b3-077516f53946}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Parallel Watch]
+"Category"="{E02A3CCD-2D8E-4628-97D7-1C0921DFA2F3}"
+"NameID"=dword:00000327
+"Package"="{3B70A4AE-BB91-4ABE-A05C-C4DE07B9763E}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Performance Tips]
+"Category"="{7A4C6CC9-8404-4B95-AF88-F11B657C7268}"
+"NameID"=dword:00001fbe
+"Package"="{3B70A4AE-BB91-4ABE-A05C-C4DE07B9763E}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Printer]
+"Category"="{47724E70-AF55-48fb-A928-BB161C1D0C05}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"SortElements"=dword:00000001
+"CategoryVersion"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Printer Language Service Items]
+"Category"="{E3322D66-3F09-4C6E-8C87-27D416C6ACF6}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Printer MEF Items]
+"Category"="{24908F31-6647-42B7-BEE5-556C73736824}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Printer Text Manager Items]
+"Category"="{D8D69480-3814-4468-9A5A-104934C9D470}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Printer Text Marker Items]
+"Category"="{6FFEE80D-673F-42AE-B15C-BA24A2CAF080}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Query/View Designer]
+"Package"="{1F2EEAC2-DCF7-4B90-9412-2CE752DE5FEB}"
+"Category"="{5B50CEC1-B3AB-4CC3-BE1E-44AF4A07B2AF}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Statement Completion]
+"Category"="{C1614BB1-734F-4a31-BD42-5AE6275E16D2}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000000
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Text Editor]
+"Category"="{A27B4E24-A735-4d1d-B8E7-9716E1E3D8E0}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"SortElements"=dword:00000001
+"CacheMOUItems"=dword:00000001
+"CategoryVersion"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Text Editor Language Service Items]
+"Category"="{E0187991-B458-4F7E-8CA9-42C9A573B56C}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Text Editor MEF Items]
+"Category"="{75A05685-00A8-4DED-BAE5-E7A50BFA929A}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Text Editor Text Manager Items]
+"Category"="{58E96763-1D3B-4E05-B6BA-FF7115FD0B7B}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Text Editor Text Marker Items]
+"Category"="{FF349800-EA43-46C1-8C98-878E78F46501}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000001
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Threads]
+"Category"="{BB8FE807-A186-404A-81FA-D20B908CA93B}"
+"NameID"=dword:00000324
+"Package"="{3B70A4AE-BB91-4ABE-A05C-C4DE07B9763E}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\ToolTips]
+"Category"="{A9A5637F-B2A8-422e-8FB5-DFB4625F0111}"
+"Package"="{DAF27B38-80B3-4C58-8133-AFD41C36C79A}"
+"HideInDialog"=dword:00000000
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\Watch]
+"Category"="{358463D0-D084-400F-997E-A34FC570BC72}"
+"NameID"=dword:00000320
+"Package"="{3B70A4AE-BB91-4ABE-A05C-C4DE07B9763E}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\WebClient Diagnostic Tools]
+"Category"="{2AA714AE-53BE-4393-84E0-DC95B57A1891}"
+"Package"="{B9D4EDDC-882C-434B-BD3F-A5F48F403F93}"
+
+[HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\14.0_Config\FontAndColors\XAML Designer]
+"Category"="{fa937f7b-c0d2-46b8-9f10-a7a92642b384}"
+"Package"="{f5cd4edc-27e9-4b5c-85b2-67e94a23ea03}"

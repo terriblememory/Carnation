@@ -12,14 +12,14 @@ namespace Carnation.Helpers
     {
         private const string FontsAndColorsCategoryId = "{1EDA5DD4-927A-43a7-810E-7FD247D0DA1D}";
 
-        public static void Import(string fileName, IEnumerable<ClassificationGridItem> items)
+        public static void Import(string fileName, IEnumerable<GridItem> items)
         {
             ThrowIfNotOnUIThread();
 
             Import(XDocument.Load(fileName), items);
         }
 
-        public static void Import(XDocument settings, IEnumerable<ClassificationGridItem> items)
+        public static void Import(XDocument settings, IEnumerable<GridItem> items)
         {
             ThrowIfNotOnUIThread();
 
@@ -45,7 +45,7 @@ namespace Carnation.Helpers
                 return;
             }
 
-            FontsAndColorsHelper.ResetAllClassificationItems();
+            FontsAndColorsHelper.ResetAllGridItems();
 
             var categories = fontsAndColorsNode.Descendants("Category");
 

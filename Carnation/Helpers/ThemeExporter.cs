@@ -9,7 +9,7 @@ namespace Carnation
 {
     internal static class ThemeExporter
     {
-        public static void Export(string fileName, IEnumerable<ClassificationGridItem> items)
+        public static void Export(string fileName, IEnumerable<GridItem> items)
         {
             Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
 

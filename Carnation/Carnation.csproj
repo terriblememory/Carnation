@@ -82,11 +82,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CarnationPackage.vsct</DependentUpon>
     </Compile>
-    <Compile Include="Models\ClassificationProvider.ClassificationGridItem.cs" />
+    <Compile Include="Models\GridItem.cs" />
     <Compile Include="Helpers\ClassificationHelpers.cs" />
     <Compile Include="Helpers\ColorHelpers.cs" />
     <Compile Include="Models\ClassificationProvider.cs" />
-    <Compile Include="Models\ClassificationProvider.ColorItemBase.cs" />
     <Compile Include="Converters\ColorToBrushConverter.cs" />
     <Compile Include="Helpers\FontsAndColorsHelpers.cs" />
     <Compile Include="MainWindow.cs" />

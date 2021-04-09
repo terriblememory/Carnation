@@ -34,11 +34,11 @@ namespace Carnation
 
             PropertyChanged += OnPropertyChanged;
 
-            EditForegroundCommand = new RelayCommand<ClassificationGridItem>(OnEditForeground);
-            EditBackgroundCommand = new RelayCommand<ClassificationGridItem>(OnEditBackground);
-            ToggleIsBoldCommand = new RelayCommand<ClassificationGridItem>(OnToggleIsBold);
-            ResetToDefaultsCommand = new RelayCommand<ClassificationGridItem>(OnResetToDefaults);
-            UseForegroundSuggestionCommand = new RelayCommand<ClassificationGridItem>(OnUseForegroundSuggestion);
+            EditForegroundCommand = new RelayCommand<GridItem>(OnEditForeground);
+            EditBackgroundCommand = new RelayCommand<GridItem>(OnEditBackground);
+            ToggleIsBoldCommand = new RelayCommand<GridItem>(OnToggleIsBold);
+            ResetToDefaultsCommand = new RelayCommand<GridItem>(OnResetToDefaults);
+            UseForegroundSuggestionCommand = new RelayCommand<GridItem>(OnUseForegroundSuggestion);
             ResetAllToDefaultsCommand = new RelayCommand(OnResetAllToDefaults);
             UseAllForegroundSuggestionsCommand = new RelayCommand(OnUseAllForegroundSuggestions);
             ExportThemeCommand = new RelayCommand(OnExportTheme);
@@ -48,18 +48,18 @@ namespace Carnation
             UpdateContrastWarnings();
 
             ClassificationGridView = CollectionViewSource.GetDefaultView(ClassificationGridItems);
-            ClassificationGridView.Filter = o => FilterClassification((ClassificationGridItem)o);
+            ClassificationGridView.Filter = o => FilterClassification((GridItem)o);
             ClassificationGridView.SortDescriptions.Clear();
-            ClassificationGridView.SortDescriptions.Add(new SortDescription(nameof(ClassificationGridItem.Classification), ListSortDirection.Ascending));
+            ClassificationGridView.SortDescriptions.Add(new SortDescription(nameof(GridItem.Classification), ListSortDirection.Ascending));
 
             (FontFamily, FontSize) = FontsAndColorsHelper.GetEditorFontInfo();
         }
 
         public ClassificationProvider ClassificationProvider { get; } = new ClassificationProvider();
-        public ObservableCollection<ClassificationGridItem> ClassificationGridItems { get; } = new ObservableCollection<ClassificationGridItem>();
+        public ObservableCollection<GridItem> ClassificationGridItems { get; } = new ObservableCollection<GridItem>();
 
-        private ClassificationGridItem _selectedClassification;
-        public ClassificationGridItem SelectedClassification
+        private GridItem _selectedClassification;
+        public GridItem SelectedClassification
         {
             get => _selectedClassification;
             set => SetProperty(ref _selectedClassification, value);
@@ -205,7 +205,7 @@ namespace Carnation
             }
         }
 
-        private bool FilterClassification(ClassificationGridItem item)
+        private bool FilterClassification(GridItem item)
         {
             if (string.IsNullOrEmpty(SearchText)) return true;
 
@@ -266,13 +266,13 @@ namespace Carnation
             if (FollowCursorSelected) SearchText = string.Empty;
         }
 
-        private void OnResetToDefaults(ClassificationGridItem item)
+        private void OnResetToDefaults(GridItem item)
         {
             ThrowIfNotOnUIThread();
-            FontsAndColorsHelper.ResetClassificationItem(item);
+            FontsAndColorsHelper.ResetGridItem(item);
         }
 
-        private void OnUseForegroundSuggestion(ClassificationGridItem item)
+        private void OnUseForegroundSuggestion(GridItem item)
         {
             ThrowIfNotOnUIThread();
 
@@ -291,24 +291,24 @@ namespace Carnation
             item.Foreground = topSuggestion.Color;
         }
 
-        private void OnToggleIsBold(ClassificationGridItem item)
+        private void OnToggleIsBold(GridItem item)
         {
             item.IsBold = !item.IsBold;
         }
 
-        private void OnEditForeground(ClassificationGridItem item)
+        private void OnEditForeground(GridItem item)
         {
             ThrowIfNotOnUIThread();
             ShowColorPicker(item);
         }
 
-        private void OnEditBackground(ClassificationGridItem item)
+        private void OnEditBackground(GridItem item)
         {
             ThrowIfNotOnUIThread();
             ShowColorPicker(item, true);
         }
 
-        private void ShowColorPicker(ClassificationGridItem item, bool editBackground = false)
+        private void ShowColorPicker(GridItem item, bool editBackground = false)
         {
             ThrowIfNotOnUIThread();
 
@@ -330,7 +330,7 @@ namespace Carnation
         private void OnResetAllToDefaults()
         {
             ThrowIfNotOnUIThread();
-            FontsAndColorsHelper.ResetAllClassificationItems();
+            FontsAndColorsHelper.ResetAllGridItems();
             UpdateContrastWarnings();
         }
 

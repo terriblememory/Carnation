@@ -1,17 +1,25 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Windows.Media;
-using Carnation.Helpers;
+using Microsoft;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using static Microsoft.VisualStudio.VSConstants;
-using static Carnation.ClassificationProvider;
 using static Microsoft.VisualStudio.Shell.ThreadHelper;
-using Microsoft;
+using Carnation.Helpers;
 
 namespace Carnation
 {
+    public class ColorItem
+    {
+        internal Guid Category;
+        internal string CategoryName;
+        internal int Priority;
+        internal AllColorableItemInfo AllColorableItemInfo;
+    }
+
     internal static class FontsAndColorsHelper
     {
         internal static readonly Guid TextEditorPackageGuid = new Guid("daf27b38-80b3-4c58-8133-afd41c36c79a");
@@ -28,7 +36,7 @@ namespace Carnation
         private const uint InvalidColorRef = 0xff000000;
 
         /// <summary>
-        /// Static constructor.
+        /// Static constructor - get services, etc.
         /// </summary>
         static FontsAndColorsHelper()
         {
@@ -47,65 +55,228 @@ namespace Carnation
             Assumes.Present(s_fontsAndColorDefaultsProvider);
         }
 
-        public static ImmutableDictionary<Guid, ImmutableArray<AllColorableItemInfo>> GetTextEditorInfos()
+        /// <summary>
+        /// Get the complete list of ColorItems.
+        /// </summary>
+        /// <remarks>
+        /// This list is basically a union of subcategories with duplicates
+        /// removed, where a duplicate is considered to have the same non-
+        /// localized name. The item from the group with the highest priority
+        /// is retained. I believe this is the behavior expected by VS based
+        /// on observation, but I don't see it clearly documented anywhere.
+        /// </remarks>
+        public static ImmutableArray<ColorItem> GetColorItems()
         {
-            var builder = ImmutableDictionary.CreateBuilder<Guid, ImmutableArray<AllColorableItemInfo>>();
-            AppendAllColorableItemInfos(builder, TextEditorCategoryGuid);
+            ThrowIfNotOnUIThread();
+            var items = new Dictionary<string, ColorItem>();
+            AppendColorItemsForCategory(items, TextEditorCategoryGuid);
+            var builder = ImmutableArray.CreateBuilder<ColorItem>();
+            builder.AddRange(items.Values);
+            builder.Sort((lhs, rhs) => string.Compare(lhs.AllColorableItemInfo.bstrName, rhs.AllColorableItemInfo.bstrName));
             return builder.ToImmutable();
         }
 
-        private static void AppendAllColorableItemInfos(ImmutableDictionary<Guid, ImmutableArray<AllColorableItemInfo>>.Builder dbuilder, Guid category)
+        /// <summary>
+        /// Helper - append the ColorItems for a category/subcategory to the builder.
+        /// </summary>
+        private static void AppendColorItemsForCategory(Dictionary<string, ColorItem> items, Guid category)
         {
             ThrowIfNotOnUIThread();
-
             Assumes.True(s_fontsAndColorDefaultsProvider.GetObject(category, out var obj) == S_OK);
-
             if (obj is IVsFontAndColorGroup group)
             {
                 var index = 0;
-                while (group.GetCategory(index, out var categoryGuid) == S_OK)
+                while (group.GetCategory(index, out var subcategory) == S_OK)
                 {
-                    if (categoryGuid == Guid.Empty) break;
-                    AppendAllColorableItemInfos(dbuilder, categoryGuid);
+                    if (subcategory == Guid.Empty) break;
+                    AppendColorItemsForCategory(items, subcategory);
                     ++index;
                 }
             }
-            else if (obj is IVsFontAndColorDefaults fontAndColorDefaults)
+            if (obj is IVsFontAndColorDefaults fontAndColorDefaults)
             {
+                fontAndColorDefaults.GetCategoryName(out var categoryName);
+                fontAndColorDefaults.GetPriority(out var priority);
                 Assumes.True(fontAndColorDefaults.GetItemCount(out var count) == S_OK);
-                var abuilder = ImmutableArray.CreateBuilder<AllColorableItemInfo>();
-                var items = new AllColorableItemInfo[1];
+                var item = new AllColorableItemInfo[1];
                 for (var index = 0; index < count; index++)
                 {
-                    Assumes.True(fontAndColorDefaults.GetItem(index, items) == S_OK);
-                    abuilder.Add(items[0]);
+                    Assumes.True(fontAndColorDefaults.GetItem(index, item) == S_OK);
+                    var ci = new ColorItem() { Category = category, CategoryName = categoryName, Priority = priority, AllColorableItemInfo = item[0] };
+                    if (items.TryGetValue(item[0].bstrName, out var existing) && existing.Priority < ci.Priority) continue;
+                    items[item[0].bstrName] = ci;
                 }
-                dbuilder.Add(category, abuilder.ToImmutable());
             }
         }
 
-        public static (Color Foreground, Color Background) GetPlainTextColors()
+        /// <summary>
+        /// Get a GridItem for a ColorItem.
+        /// </summary>
+        public static GridItem TryGetGridItemForColorItem(ColorItem colorItem)
         {
             ThrowIfNotOnUIThread();
 
-            if (s_fontsAndColorStorage.OpenCategory(TextEditorCategoryGuid, (uint)(__FCSTORAGEFLAGS.FCSF_READONLY | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS)) != S_OK)
+            var openFlags = (uint)(__FCSTORAGEFLAGS.FCSF_READONLY | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS);
+            Assumes.True(s_fontsAndColorStorage.OpenCategory(colorItem.Category, openFlags) == S_OK);
+
+            try
             {
-                return DefaultTextColors;
+                var definitionName = colorItem.AllColorableItemInfo.bstrName;
+                var colorableItemInfos = new ColorableItemInfo[1];
+                Assumes.True(s_fontsAndColorStorage.GetItem(definitionName, colorableItemInfos) == S_OK);
+                var colorItemInfo = colorableItemInfos[0];
+                var isBold = ((FONTFLAGS)colorItemInfo.dwFontFlags).HasFlag(FONTFLAGS.FF_BOLD);
+                var flags = (__FCITEMFLAGS)colorItem.AllColorableItemInfo.fFlags;
+                var isForegroundEditable = flags.HasFlag(__FCITEMFLAGS.FCIF_ALLOWFGCHANGE);
+                var isBackgroundEditable = flags.HasFlag(__FCITEMFLAGS.FCIF_ALLOWBGCHANGE);
+                var isBoldEditable = flags.HasFlag(__FCITEMFLAGS.FCIF_ALLOWBOLDCHANGE);
+
+                return new GridItem(
+                    colorItem.Category,
+                    definitionName,
+                    $"{colorItem.AllColorableItemInfo.bstrLocalizedName} ({definitionName} from {colorItem.CategoryName})",
+                    colorItemInfo.crForeground,
+                    colorItemInfo.crBackground,
+                    colorItem.AllColorableItemInfo.crAutoForeground,
+                    colorItem.AllColorableItemInfo.crAutoBackground,
+                    isBold,
+                    isForegroundEditable,
+                    isBackgroundEditable,
+                    isBoldEditable);
             }
+            finally
+            {
+                s_fontsAndColorStorage.CloseCategory();
+            }
+        }
+
+        /// <summary>
+        /// Update a GridItem from a ColorItem.
+        /// </summary>
+        internal static void RefreshGridItemFromColorItem(GridItem gridItem, ColorItem colorItem)
+        {
+            ThrowIfNotOnUIThread();
+
+            var openFlags = (uint)(__FCSTORAGEFLAGS.FCSF_READONLY | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS);
+            Assumes.True(s_fontsAndColorStorage.OpenCategory(gridItem.Category, openFlags) == S_OK);
+
+            try
+            {
+                var colorableItemInfos = new ColorableItemInfo[1];
+                Assumes.True(s_fontsAndColorStorage.GetItem(gridItem.DefinitionName, colorableItemInfos) == S_OK);
+                var colorableItemInfo = colorableItemInfos[0];
+                gridItem.AutoForegroundColorRef = colorItem.AllColorableItemInfo.crAutoForeground;
+                gridItem.AutoBackgroundColorRef = colorItem.AllColorableItemInfo.crAutoBackground;
+                gridItem.ForegroundColorRef = colorableItemInfo.crForeground;
+                gridItem.BackgroundColorRef = colorableItemInfo.crBackground;
+                gridItem.IsBold = ((FONTFLAGS)colorableItemInfo.dwFontFlags).HasFlag(FONTFLAGS.FF_BOLD);
+            }
+            finally
+            {
+                s_fontsAndColorStorage.CloseCategory();
+            }
+        }
+
+        /// <summary>
+        /// Save a GridItem.
+        /// </summary>
+        internal static void SaveGridItem(GridItem item)
+        {
+            ThrowIfNotOnUIThread();
+
+            var openFlags = (uint)(__FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS);
+            Assumes.True(s_fontsAndColorStorage.OpenCategory(item.Category, openFlags) == S_OK);
 
             try
             {
                 var colorItems = new ColorableItemInfo[1];
-
-                if (s_fontsAndColorStorage.GetItem("Plain Text", colorItems) != S_OK)
-                {
-                    return DefaultTextColors;
-                }
-
+                Assumes.True(s_fontsAndColorStorage.GetItem(item.DefinitionName, colorItems) == S_OK);
                 var colorItem = colorItems[0];
-                var foreground = TryGetColor(colorItem.crForeground) ?? DefaultTextColors.Foreground;
-                var background = TryGetColor(colorItem.crBackground) ?? DefaultTextColors.Background;
+                colorItem.crForeground = item.ForegroundColorRef;
+                colorItem.crBackground = item.BackgroundColorRef;
+                colorItem.dwFontFlags = item.IsBold ? (uint)FONTFLAGS.FF_BOLD : (uint)FONTFLAGS.FF_DEFAULT;
+                Assumes.True(s_fontsAndColorStorage.SetItem(item.DefinitionName, new[] { colorItem }) == S_OK);
+            }
+            finally
+            {
+                s_fontsAndColorStorage.CloseCategory();
+            }
+        }
 
+        /// <summary>
+        /// Reset a GridItem to its defaults.
+        /// </summary>
+        internal static void ResetGridItem(GridItem item)
+        {
+            ThrowIfNotOnUIThread();
+
+            var openFlags = (uint)(__FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS);
+            Assumes.True(s_fontsAndColorStorage.OpenCategory(item.Category, openFlags) == S_OK);
+
+            try
+            {
+                var colorItems = new ColorableItemInfo[1];
+                Assumes.True(s_fontsAndColorStorage.GetItem(item.DefinitionName, colorItems) == S_OK);
+                Assumes.True(((IVsFontAndColorStorage2)s_fontsAndColorStorage).RevertItemToDefault(item.DefinitionName) == S_OK);
+                Assumes.True(s_fontsAndColorStorage.GetItem(item.DefinitionName, colorItems) == S_OK);
+                var colorItem = colorItems[0];
+                if (item.IsForegroundEditable) item.ForegroundColorRef = colorItem.crForeground;
+                if (item.IsBackgroundEditable) item.BackgroundColorRef = colorItem.crBackground;
+                if (item.IsBoldEditable) item.IsBold = ((FONTFLAGS)colorItem.dwFontFlags).HasFlag(FONTFLAGS.FF_BOLD);
+            }
+            finally
+            {
+                s_fontsAndColorStorage.CloseCategory();
+            }
+        }
+
+        /// <summary>
+        /// Reset all TextEditor GridItems to defaults.
+        /// </summary>
+        internal static void ResetAllGridItems()
+        {
+            ThrowIfNotOnUIThread();
+
+            ResetCategoryItems(TextEditorCategoryGuid);
+        }
+
+        /// <summary>
+        /// Reset GridItems for a category to defaults.
+        /// </summary>
+        internal static void ResetCategoryItems(Guid category)
+        {
+            ThrowIfNotOnUIThread();
+
+            var openFlags = (uint)(__FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES);
+            Assumes.True(s_fontsAndColorStorage.OpenCategory(category, openFlags) == S_OK);
+
+            try
+            {
+                Assumes.True(((IVsFontAndColorStorage2)s_fontsAndColorStorage).RevertAllItemsToDefault() == S_OK);
+            }
+            finally
+            {
+                s_fontsAndColorStorage.CloseCategory();
+            }
+        }
+
+        /// <summary>
+        /// Returns the Text Editor plain text colors.
+        /// </summary>
+        public static (Color Foreground, Color Background) GetPlainTextColors()
+        {
+            ThrowIfNotOnUIThread();
+
+            var openFlags = (uint)(__FCSTORAGEFLAGS.FCSF_READONLY | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS);
+            Assumes.True(s_fontsAndColorStorage.OpenCategory(TextEditorCategoryGuid, openFlags) == S_OK);
+
+            try
+            {
+                var colorItems = new ColorableItemInfo[1];
+                Assumes.True(s_fontsAndColorStorage.GetItem("Plain Text", colorItems) == S_OK);
+                var colorItem = colorItems[0];
+                var foreground = TryGetColorFromColorRef(colorItem.crForeground) ?? DefaultTextColors.Foreground;
+                var background = TryGetColorFromColorRef(colorItem.crBackground) ?? DefaultTextColors.Background;
                 return (foreground, background);
             }
             finally
@@ -114,29 +285,22 @@ namespace Carnation
             }
         }
 
+        /// <summary>
+        /// Returns the Text Editor font information.
+        /// </summary>
         public static (FontFamily FontFamily, double FontSize) GetEditorFontInfo(bool scaleFontSize = true)
         {
             ThrowIfNotOnUIThread();
 
-            if (s_fontsAndColorStorage.OpenCategory(TextEditorCategoryGuid, (uint)(__FCSTORAGEFLAGS.FCSF_READONLY | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS)) != S_OK)
-            {
-                return DefaultFontInfo;
-            }
+            var openFlags = (uint)(__FCSTORAGEFLAGS.FCSF_READONLY | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS);
+            Assumes.True(s_fontsAndColorStorage.OpenCategory(TextEditorCategoryGuid, openFlags) == S_OK);
 
             try
             {
                 var logFont = new LOGFONTW[1];
                 var fontInfo = new FontInfo[1];
-
-                if (s_fontsAndColorStorage.GetFont(logFont, fontInfo) != S_OK)
-                {
-                    return DefaultFontInfo;
-                }
-
-                var fontFamily = fontInfo[0].bFaceNameValid != 0
-                    ? new FontFamily(fontInfo[0].bstrFaceName)
-                    : DefaultFontInfo.FontFamily;
-
+                Assumes.True(s_fontsAndColorStorage.GetFont(logFont, fontInfo) == S_OK);
+                var fontFamily = fontInfo[0].bFaceNameValid != 0 ? new FontFamily(fontInfo[0].bstrFaceName) : DefaultFontInfo.FontFamily;
                 var fontSize = DefaultFontInfo.FontSize;
 
                 if (fontInfo[0].bPointSizeValid != 0)
@@ -174,62 +338,11 @@ namespace Carnation
             return 1;
         }
 
-        public static ClassificationGridItem TryGetClassificationItemForInfo(Guid category, AllColorableItemInfo allColorableItemInfo)
+        public static Color? TryGetColorFromColorRef(uint colorRef)
         {
             ThrowIfNotOnUIThread();
 
-            var flags = (uint)(__FCSTORAGEFLAGS.FCSF_READONLY | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS);
-
-            if (s_fontsAndColorStorage.OpenCategory(category, flags) != S_OK)
-            {
-                // We were unable to access color information.
-                return null;
-            }
-
-            try
-            {
-                var definitionName = allColorableItemInfo.bstrName;
-
-                var colorItems = new ColorableItemInfo[1];
-
-                if (s_fontsAndColorStorage.GetItem(definitionName, colorItems) != S_OK)
-                {
-                    return null;
-                }
-
-                var colorItem = colorItems[0];
-                var isBold = ((FONTFLAGS)colorItem.dwFontFlags).HasFlag(FONTFLAGS.FF_BOLD);
-                var isForegroundEditable = ((__FCITEMFLAGS)allColorableItemInfo.fFlags).HasFlag(__FCITEMFLAGS.FCIF_ALLOWFGCHANGE);
-                var isBackgroundEditable = ((__FCITEMFLAGS)allColorableItemInfo.fFlags).HasFlag(__FCITEMFLAGS.FCIF_ALLOWBGCHANGE);
-                var isBoldEditable = ((__FCITEMFLAGS)allColorableItemInfo.fFlags).HasFlag(__FCITEMFLAGS.FCIF_ALLOWBOLDCHANGE);
-
-                return new ClassificationGridItem(
-                    category,
-                    definitionName,
-                    allColorableItemInfo.bstrLocalizedName,
-                    colorItem.crForeground,
-                    colorItem.crBackground,
-                    allColorableItemInfo.crAutoForeground,
-                    allColorableItemInfo.crAutoBackground,
-                    isBold,
-                    isForegroundEditable,
-                    isBackgroundEditable,
-                    isBoldEditable);
-            }
-            finally
-            {
-                s_fontsAndColorStorage.CloseCategory();
-            }
-        }
-
-        public static Color? TryGetColor(uint colorRef)
-        {
-            ThrowIfNotOnUIThread();
-
-            if (s_fontAndColorUtilities.GetColorType(colorRef, out var colorType) != S_OK)
-            {
-                return null;
-            }
+            Assumes.True(s_fontAndColorUtilities.GetColorType(colorRef, out var colorType) == S_OK);
 
             uint? win32Color = null;
 
@@ -283,150 +396,10 @@ namespace Carnation
             return Color.FromRgb(drawingColor.R, drawingColor.G, drawingColor.B);
         }
 
-        internal static void SaveClassificationItem(ClassificationGridItem item)
-        {
-            ThrowIfNotOnUIThread();
-
-            // Make sure LOADDEFAULTS is passed so any default values can be modified as well.
-            if (s_fontsAndColorStorage.OpenCategory(item.Category, (uint)(__FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS)) != S_OK)
-            {
-                // We were unable to access color information.
-                return;
-            }
-
-            try
-            {
-                var colorItems = new ColorableItemInfo[1];
-                if (s_fontsAndColorStorage.GetItem(item.DefinitionName, colorItems) != S_OK)
-                {
-                    return;
-                }
-
-                var colorItem = colorItems[0];
-
-                colorItem.crForeground = item.ForegroundColorRef;
-                colorItem.crBackground = item.BackgroundColorRef;
-
-                colorItem.dwFontFlags = item.IsBold
-                    ? (uint)FONTFLAGS.FF_BOLD
-                    : (uint)FONTFLAGS.FF_DEFAULT;
-
-                if (s_fontsAndColorStorage.SetItem(item.DefinitionName, new[] { colorItem }) != S_OK)
-                {
-                    throw new Exception();
-                }
-            }
-            finally
-            {
-                s_fontsAndColorStorage.CloseCategory();
-            }
-        }
-
         internal static uint GetColorRef(Color color, Color defaultColor)
         {
             if (color == defaultColor) return InvalidColorRef;
             return (uint)(color.R | color.G << 8 | color.B << 16);
-        }
-
-        internal static void RefreshClassificationItem(ClassificationGridItem item, AllColorableItemInfo allColorableItemInfo)
-        {
-            ThrowIfNotOnUIThread();
-
-            if (s_fontsAndColorStorage.OpenCategory(item.Category, (uint)(__FCSTORAGEFLAGS.FCSF_READONLY | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS)) != S_OK)
-            {
-                return;
-            }
-
-            try
-            {
-                var colorItems = new ColorableItemInfo[1];
-
-                if (s_fontsAndColorStorage.GetItem(item.DefinitionName, colorItems) != S_OK)
-                {
-                    return;
-                }
-
-                var colorItem = colorItems[0];
-
-                item.AutoForegroundColorRef = allColorableItemInfo.crAutoForeground;
-                item.AutoBackgroundColorRef = allColorableItemInfo.crAutoBackground;
-                item.ForegroundColorRef = colorItem.crForeground;
-                item.BackgroundColorRef = colorItem.crBackground;
-                item.IsBold = ((FONTFLAGS)colorItem.dwFontFlags).HasFlag(FONTFLAGS.FF_BOLD);
-            }
-            finally
-            {
-                s_fontsAndColorStorage.CloseCategory();
-            }
-        }
-
-        internal static void ResetClassificationItem(ClassificationGridItem item)
-        {
-            ThrowIfNotOnUIThread();
-
-            if (s_fontsAndColorStorage.OpenCategory(item.Category, (uint)(__FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS)) != S_OK)
-            {
-                return;
-            }
-
-            try
-            {
-                var colorItems = new ColorableItemInfo[1];
-
-                if (s_fontsAndColorStorage.GetItem(item.DefinitionName, colorItems) != S_OK)
-                {
-                    return;
-                }
-
-                if (((IVsFontAndColorStorage2)s_fontsAndColorStorage).RevertItemToDefault(item.DefinitionName) != S_OK)
-                {
-                    throw new Exception();
-                }
-
-                if (s_fontsAndColorStorage.GetItem(item.DefinitionName, colorItems) != S_OK)
-                {
-                    return;
-                }
-
-                var colorItem = colorItems[0];
-
-                if (item.IsForegroundEditable) item.ForegroundColorRef = colorItem.crForeground;
-                if (item.IsBackgroundEditable) item.BackgroundColorRef = colorItem.crBackground;
-                if (item.IsBoldEditable) item.IsBold = ((FONTFLAGS)colorItem.dwFontFlags).HasFlag(FONTFLAGS.FF_BOLD);
-            }
-            finally
-            {
-                s_fontsAndColorStorage.CloseCategory();
-            }
-        }
-
-        internal static void ResetAllClassificationItems()
-        {
-            ThrowIfNotOnUIThread();
-
-            ResetCategoryItems(TextEditorCategoryGuid);
-
-            return;
-
-            static void ResetCategoryItems(Guid category)
-            {
-                if (s_fontsAndColorStorage.OpenCategory(category, (uint)(__FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES)) != S_OK)
-                {
-                    return;
-                }
-
-                try
-                {
-                    if (((IVsFontAndColorStorage2)s_fontsAndColorStorage).RevertAllItemsToDefault() != S_OK)
-                    {
-                        throw new Exception();
-                    }
-                }
-                finally
-                {
-                    s_fontsAndColorStorage.CloseCategory();
-                }
-            }
         }
     }
 }

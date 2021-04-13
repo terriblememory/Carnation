@@ -9,13 +9,12 @@ namespace Carnation
     {
         public static Color PlainTextForeground { get; private set; }
         public static Color PlainTextBackground { get; private set; }
-        public static ImmutableDictionary<string, string> ClassificationNameMap { get; private set; }
         public static bool IsUpdating { get; private set; }
 
         static ClassificationProvider()
         {
             ThrowIfNotOnUIThread();
-            ClassificationNameMap = ClassificationHelpers.GetClassificationNameMap();
+            (PlainTextForeground, PlainTextBackground) = FontsAndColorsHelper.GetPlainTextColors();
         }
 
         public ImmutableArray<GridItem> GridItems { get; }

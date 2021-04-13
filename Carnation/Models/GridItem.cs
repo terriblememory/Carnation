@@ -161,9 +161,12 @@ namespace Carnation
             set => SetProperty(ref _hasContrastWarning, value);
         }
 
-        public string Classification => ClassificationProvider.ClassificationNameMap.ContainsKey(DefinitionName)
-            ? ClassificationProvider.ClassificationNameMap[DefinitionName]
-            : DefinitionName;
+        // Classification
+
+        public string Classification => ClassificationMap.GetClassificationNameForItemName(DefinitionName);
+
+        public override string ToString()
+            => Classification;
 
         public string Sample => "Sample Text";
 
@@ -211,8 +214,5 @@ namespace Carnation
                 }
             };
         }
-
-        public override string ToString()
-            => Classification;
     }
 }

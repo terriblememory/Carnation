@@ -12,6 +12,36 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Carnation
 {
+    public static class ClassificationMap
+    {
+        private static ImmutableDictionary<string, string> itemNameToClassification;
+
+        static ClassificationMap()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            var efds = VSServiceHelpers.GetMefExports<EditorFormatDefinition>().ToArray();
+            foreach (var efd in efds)
+            {
+                var type = efd.GetType();
+                var uv = type.GetCustomAttribute<UserVisibleAttribute>();
+                if (uv?.UserVisible != true) continue;
+                var name = type.GetCustomAttribute<NameAttribute>()?.Name;
+                var ctns = type.GetCustomAttribute<ClassificationTypeAttribute>()?.ClassificationTypeNames;
+                if (string.IsNullOrEmpty(name)) continue;
+                builder.Add(name, ctns ?? name);
+            }
+
+            itemNameToClassification = builder.ToImmutable();
+        }
+
+        public static string GetClassificationNameForItemName(string itemName)
+        {
+            return itemNameToClassification.TryGetValue(itemName, out var classificationName) ? classificationName : itemName;
+        }
+    }
+
     internal static class ClassificationHelpers
     {
         public static ImmutableDictionary<string, string> GetClassificationNameMap()

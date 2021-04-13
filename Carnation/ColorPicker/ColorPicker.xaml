@@ -14,7 +14,6 @@
     <UserControl.Resources>
         <local:PercentConverter x:Key="PercentConverter" />
         <local:ColorToBrushConverter x:Key="ColorToBrushConverter" />
-        <local:ContrastRatioConverter x:Key="ContrastRatioConverter" />
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <local:ColorToTextWithoutAlpha x:Key="ColorToTextWithoutAlpha" />
 
@@ -66,6 +65,7 @@
                 Width="50"
                 Margin="5, 0, 5, 0" />
         </DockPanel>
+
         <Grid x:Name="ColorDetailsGrd" Grid.Column="1">
             <Grid.Resources>
                 <Style TargetType="Label" BasedOn="{StaticResource {x:Static vsfx:VsResourceKeys.ThemedDialogLabelStyleKey}}">
@@ -188,61 +188,6 @@
                     <SolidColorBrush Color="{Binding CurrentEditorColor.Color, Mode=OneWay}" />
                 </Rectangle.Fill>
             </Rectangle>
-
-            <Label Grid.Row="8" Grid.Column="0" Content="Contrast Ratio" x:Name="ContrastRatioLabel" />
-            <TextBlock
-                Text="{Binding ContrastRatio, Converter={StaticResource ContrastRatioConverter}}" 
-                Grid.Row="8" 
-                Grid.Column="1" 
-                AutomationProperties.LiveSetting="Polite" 
-                AutomationProperties.LabeledBy="{Binding ElementName=ContrastRatioLabel}" />
-
-            <Label 
-                Grid.Row="9" 
-                Grid.Column="0" 
-                Content="Suggested Colors" 
-                x:Name="SuggestedColorsLabel" 
-                ToolTip="Suggested colors to meet AA/AAA standard for accessible contrast" />
-            <ComboBox 
-                x:Name="Suggested_Colors"
-                Grid.Row="9" 
-                Grid.Column="1" 
-                Focusable="True" 
-                AutomationProperties.LabeledBy="{Binding ElementName=SuggestedColorsLabel}"
-                ItemsSource="{Binding SuggestedColors}"
-                SelectionChanged="SuggestedColor_Selected"
-                IsEnabled="{Binding ShowSuggestedColors}">
-                <ComboBox.ItemContainerStyle>
-                    <Style TargetType="ComboBoxItem">
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                        <Setter Property="Background" Value="{Binding ElementName=Control, Path=DataContext.BackgroundColor.Color, Converter={StaticResource ColorToBrushConverter}}" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding ElementName=Control, Path=DataContext.IsForegroundBeingEdited}" Value="False">
-                                <Setter Property="Background" Value="{Binding Path=., Converter={StaticResource ColorToBrushConverter}, Mode=OneWay}" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </ComboBox.ItemContainerStyle>
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock 
-                            Foreground="{Binding ElementName=Control, Path=DataContext.ForegroundColor.Color, Converter={StaticResource ColorToBrushConverter}}"
-                            Text="{Binding Path=., Converter={StaticResource ColorToTextWithoutAlpha}, Mode=OneWay}"                     
-                            FontFamily="{Binding SampleTextFontFamily}"
-                            FontSize="{Binding SampleTextFontSize}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ElementName=Control, Path=DataContext.IsForegroundBeingEdited}" Value="True">
-                                            <Setter Property="Foreground" Value="{Binding Path=., Converter={StaticResource ColorToBrushConverter}, Mode=OneWay}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
 
             <StackPanel 
                 Grid.Row="10" 

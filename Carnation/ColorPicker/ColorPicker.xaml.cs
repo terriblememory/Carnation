@@ -30,12 +30,6 @@ namespace Carnation
             typeof(ColorPicker),
             new PropertyMetadata(false, OnEditBackgroundChanged));
 
-        public static readonly DependencyProperty UseExtraContrastSuggestionsProperty = DependencyProperty.Register(
-            nameof(UseExtraContrastSuggestions),
-            typeof(bool),
-            typeof(ColorPicker),
-            new PropertyMetadata(false, OnUseExtraContrastSuggestionsChanged));
-
         public static readonly DependencyProperty SampleTextFontFamilyProperty = DependencyProperty.Register(
             nameof(SampleTextFontFamily),
             typeof(FontFamily),
@@ -125,12 +119,6 @@ namespace Carnation
             set => SetValue(EditBackgroundColorProperty, value);
         }
 
-        public bool UseExtraContrastSuggestions
-        {
-            get => (bool)GetValue(UseExtraContrastSuggestionsProperty);
-            set => SetValue(UseExtraContrastSuggestionsProperty, value);
-        }
-
         public FontFamily SampleTextFontFamily
         {
             get => (FontFamily)GetValue(SampleTextFontFamilyProperty);
@@ -180,13 +168,6 @@ namespace Carnation
             }
         }
 
-        private static void OnUseExtraContrastSuggestionsChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
-        {
-            var colorPicker = (ColorPicker)o;
-            var vm = (ColorPickerViewModel)colorPicker.DataContext;
-            vm.UseExtraContrastSuggestions = (bool)e.NewValue;
-        }
-
         private static void OnSampleTextFontFamilyChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
             var colorPicker = (ColorPicker)o;
@@ -199,15 +180,6 @@ namespace Carnation
             var colorPicker = (ColorPicker)o;
             var vm = (ColorPickerViewModel)colorPicker.DataContext;
             vm.SampleTextFontSize = (double)e.NewValue;
-        }
-
-        private void SuggestedColor_Selected(object sender, RoutedEventArgs e)
-        {
-            var comboBox = (ComboBox)sender;
-            if (comboBox.SelectedItem is Color selectedColor)
-            {
-                _viewModel.CurrentEditorColor.Color = selectedColor;
-            }
         }
     }
 }

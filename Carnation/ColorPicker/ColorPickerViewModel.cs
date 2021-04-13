@@ -10,63 +10,11 @@ namespace Carnation
 {
     internal class ColorPickerViewModel : NotifyPropertyBase
     {
-        private readonly TimeLimitedAction _calculateSuggestedColors;
         public ColorPickerViewModel()
         {
             ForegroundColor = new ObservableColor(Colors.Transparent);
             BackgroundColor = new ObservableColor(Colors.Transparent);
             CurrentEditorColor = ForegroundColor;
-
-            ForegroundColor.PropertyChanged += ForegroundColor_PropertyChanged;
-            BackgroundColor.PropertyChanged += BackgroundColor_PropertyChanged;
-
-            _calculateSuggestedColors = new TimeLimitedAction(() =>
-            {
-                var color1 = IsForegroundBeingEdited
-                    ? ForegroundColor.Color
-                    : BackgroundColor.Color;
-
-                var color2 = IsForegroundBeingEdited
-                    ? BackgroundColor.Color
-                    : ForegroundColor.Color;
-
-                var suggestedColors = UseExtraContrastSuggestions
-                    ? ContrastHelpers.FindSimilarAAAColor(color1, color2)
-                    : ContrastHelpers.FindSimilarAAColor(color1, color2);
-
-                SuggestedColors.Clear();
-                foreach (var suggestion in suggestedColors)
-                {
-                    SuggestedColors.Add(suggestion.Color);
-                }
-
-                ShowSuggestedColors = SuggestedColors.Any();
-            }, TimeSpan.FromSeconds(1));
-
-            CalculateContrast();
-        }
-
-        private void CalculateContrast()
-        {
-            ContrastRatio = ColorHelpers.GetContrast(ForegroundColor.Color, BackgroundColor.Color);
-            _calculateSuggestedColors.TryToExecute();
-        }
-
-        private void BackgroundColor_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            CalculateContrast();
-        }
-
-        private void ForegroundColor_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            CalculateContrast();
-        }
-
-        private bool _useExtraContrastSuggestions;
-        public bool UseExtraContrastSuggestions
-        {
-            get => _useExtraContrastSuggestions;
-            set => SetProperty(ref _useExtraContrastSuggestions, value);
         }
 
         private ObservableColor _currentEditorColor;
@@ -94,21 +42,6 @@ namespace Carnation
         {
             get => _foregroundColor;
             set => SetProperty(ref _foregroundColor, value);
-        }
-
-        public ObservableCollection<Color> SuggestedColors { get; } = new ObservableCollection<Color>();
-        private bool _showSuggestedColors;
-        public bool ShowSuggestedColors
-        {
-            get => _showSuggestedColors;
-            set => SetProperty(ref _showSuggestedColors, value);
-        }
-
-        private double _contrastRatio;
-        public double ContrastRatio
-        {
-            get => _contrastRatio;
-            set => SetProperty(ref _contrastRatio, value);
         }
 
         private FontFamily _sampleTextFontFamily;

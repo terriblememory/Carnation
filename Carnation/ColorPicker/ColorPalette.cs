@@ -25,7 +25,6 @@ namespace Carnation
 
     public class ColorPalette : UserControl
     {
-
         private static readonly Color[] s_colorSwatch = new[]
         {
             SWM.Colors.Black,

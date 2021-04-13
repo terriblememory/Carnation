@@ -29,7 +29,6 @@ namespace Carnation
             ColorPicker.ForegroundColor = foregroundColor;
             ColorPicker.BackgroundColor = backgroundColor;
             ColorPicker.EditBackgroundColor = editBackground;
-            ColorPicker.UseExtraContrastSuggestions = useExtraContrastSuggestions;
             ColorPicker.SampleTextFontFamily = sampleFontFamily;
             ColorPicker.SampleTextFontSize = sampleFontSize;
 

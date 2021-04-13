@@ -33,8 +33,6 @@ namespace Carnation
         private static readonly IVsFontAndColorDefaultsProvider s_fontsAndColorDefaultsProvider;
         private static readonly IVsUIShell2 s_vsUIShell2;
 
-        private const uint InvalidColorRef = 0xff000000;
-
         /// <summary>
         /// Static constructor - get services, etc.
         /// </summary>
@@ -218,7 +216,6 @@ namespace Carnation
                 var colorItems = new ColorableItemInfo[1];
                 Assumes.True(s_fontsAndColorStorage.GetItem(item.DefinitionName, colorItems) == S_OK);
                 Assumes.True(((IVsFontAndColorStorage2)s_fontsAndColorStorage).RevertItemToDefault(item.DefinitionName) == S_OK);
-                Assumes.True(s_fontsAndColorStorage.GetItem(item.DefinitionName, colorItems) == S_OK);
                 var colorItem = colorItems[0];
                 if (item.IsForegroundEditable) item.ForegroundColorRef = colorItem.crForeground;
                 if (item.IsBackgroundEditable) item.BackgroundColorRef = colorItem.crBackground;
@@ -236,7 +233,6 @@ namespace Carnation
         internal static void ResetAllGridItems()
         {
             ThrowIfNotOnUIThread();
-
             ResetCategoryItems(TextEditorCategoryGuid);
         }
 
@@ -352,7 +348,7 @@ namespace Carnation
             }
             else if (colorType == (int)__VSCOLORTYPE.CT_AUTOMATIC)
             {
-                return null; 
+                return null;
             }
             else if (colorType == (int)__VSCOLORTYPE.CT_RAW)
             {
@@ -398,7 +394,6 @@ namespace Carnation
 
         internal static uint GetColorRef(Color color, Color defaultColor)
         {
-            if (color == defaultColor) return InvalidColorRef;
             return (uint)(color.R | color.G << 8 | color.B << 16);
         }
     }

@@ -6,7 +6,6 @@
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:local="clr-namespace:Carnation"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
-             xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
              Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
              mc:Ignorable="d"
